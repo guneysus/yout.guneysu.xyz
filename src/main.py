@@ -31,19 +31,12 @@ def my_hook(d):
 
 
 ydl_opts = {
-    # 'format': 'bestaudio/best',
-    # 'postprocessors': [{
-    #     'key': 'FFmpegExtractAudio',
-    #     'preferredcodec': 'mp3',
-    #     'preferredquality': '192',
-    # }],
     'logger': MyLogger(),
+    "keepvideo": True,
     'progress_hooks': [my_hook],
     "noplaylist": True,
-    "id": True,
     "outtmpl": '%(id)s_%(width)sx%(height)s.%(ext)s',
-    "dump_single_json": True,
-    "simulate": True,
+    # "dump_single_json": True
 }
 
 
@@ -79,12 +72,20 @@ class StreamHandler(tornado.web.RequestHandler):
 
         url = self.get_argument('url')
         self.write(url)
+        self.write('<br>')
 
         self._id = youtubeUrlParser(url)
 
         self.flush()
 
         ydl_opts = {
+            'format': 'best[ext=mp4][filesize<10M]', # 'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best', #
+            "keepvideo": True,
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
             'logger': MyLogger(),
             'progress_hooks': [self._hook],
             "noplaylist": True,
@@ -96,7 +97,57 @@ class StreamHandler(tornado.web.RequestHandler):
             ydl.download([self._id])
 
         self.write('<br>')
+        self.write('<a href="/download/{file}">{file}</a>'.format(file=self._id + ".mp3"))
+        self.write('<br>')
         self.write('<a href="/download/{file}">{file}</a>'.format(file=self._id + ".mp4"))
+
+        self.finish()
+
+    def on_chunk(self, chunk):
+        self.write('some chunk')
+        self.flush()
+
+    def _hook(self, d):
+        if d['status'] == 'finished':
+            self.write('Done downloading, now converting ...')
+            self.flush()
+        else:
+            self.write(d['_percent_str'])
+            self.write('<br>')
+            self.flush()
+
+class InjectHandler(tornado.web.RequestHandler):
+    _id = None
+
+    @tornado.gen.coroutine
+    def get(self):
+
+        self._id = self.get_argument('v')
+        self.write(self._id)
+        self.write("<br>")
+
+        self.flush()
+
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            "keepvideo": True,
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+            'logger': MyLogger(),
+            'progress_hooks': [self._hook],
+            "noplaylist": True,
+            "outtmpl": '%(id)s.%(ext)s',
+            "simulate": False,
+        }
+
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([self._id])
+
+        self.write('<br>')
+        self.write('<a href="/download/{file}">{file}</a>'.format(file=self._id + ".mp3"))
 
         self.finish()
 
@@ -140,6 +191,7 @@ urls = [
     (r'/home', HomeHandler),
     (r'/api', ApiHandler),
     (r'/', StreamHandler),
+    (r'/watch', InjectHandler),
     (r'/download/(.*)', DownloadHandler),
 ]
 
