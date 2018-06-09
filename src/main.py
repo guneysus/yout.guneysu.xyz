@@ -2,67 +2,19 @@
 # coding: utf-8
 import os
 
-import tornado.web
+import tornado.gen
+import tornado.httpclient
 import tornado.httpserver
 import tornado.ioloop
-import tornado.gen
-import json
 import tornado.util
-
-from urllib.parse import urlparse, parse_qs
+import tornado.web
 import youtube_dl
-import tornado.httpclient
 from tornado.web import HTTPError
 
-class MyLogger(object):
-    def debug(self, msg):
-        print(msg)
-
-    def warning(self, msg):
-        print(msg)
-
-    def error(self, msg):
-        print(msg)
-
-
-def my_hook(d):
-    if d['status'] == 'finished':
-        print('Done downloading, now converting ...')
-
-
-ydl_opts = {
-    'logger': MyLogger(),
-    "keepvideo": True,
-    'progress_hooks': [my_hook],
-    "noplaylist": True,
-    "outtmpl": '%(id)s_%(width)sx%(height)s.%(ext)s',
-    # "dump_single_json": True
-}
-
-
-def youtubeUrlParser(url):
-    parsed_url = urlparse(url)
-    qs = parse_qs(qs=parsed_url.query)
-    _id = qs.get('v', [None])[0]
-    return _id
-
-
-class HomeHandler(tornado.web.RequestHandler):
-    def get(self, *args, **kwargs):
-        self.render('index.html')
-
-
-class ApiHandler(tornado.web.RequestHandler):
-    def post(self, *args, **kwargs):
-        data = json.loads(str(self.request.body.decode('utf-8')))
-        url = data['url']
-        _id = youtubeUrlParser(url)
-
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([_id])
-
-        self.write(_id)
-
+# from handlers import ApiHandler, HomeHandler
+from helpers import youtubeUrlParser
+# from hooks import my_hook
+from loggers import MyLogger
 
 class StreamHandler(tornado.web.RequestHandler):
     _id = None
@@ -188,10 +140,10 @@ class DownloadHandler(tornado.web.RequestHandler):
         raise HTTPError(500)
 
 urls = [
-    (r'/home', HomeHandler),
-    (r'/api', ApiHandler),
+    # (r'/home', HomeHandler),
+    # (r'/api', ApiHandler),
     (r'/', StreamHandler),
-    (r'/watch', InjectHandler),
+    # (r'/watch', InjectHandler),
     (r'/download/(.*)', DownloadHandler),
 ]
 
