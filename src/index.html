@@ -5,18 +5,30 @@
     <title>video downloader</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+
 </head>
 <body>
 
-    <input type="text" name="url" value=""/>
-    {% module xsrf_form_html() %}
+<div id="wrapper">
+    <div class="content">
+        <input type="text" name="url" value="" placeholder="https://youtu.be/EngW7tLk6R8"/>
+            <button type="button" onclick="requestDownload()">Download</button>
 
-    <button type="button" onclick="requestDownload()">Download</button>
+    <div>
+        <ul>
+            <li><a id="video_link" href="javascript:void(0)">#</a></li>
+            <li><a id="audio_link" href="javascript:void(0)">#</a></li>
+        </ul>
+    </div>
+    </div>
+
+    {% module xsrf_form_html() %}
 
 
     <script src="/static/site.js"></script>
 
-
+</div>
 </body>
 
 </html>

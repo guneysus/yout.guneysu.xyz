@@ -1,0 +1,26 @@
+    body {
+        margin:0;
+    }
+
+    #wrapper {
+        /*background-color: aliceblue;*/
+        width: 100%;
+        padding: 0;
+        margin: 0 auto;
+    }
+
+    input[name=url] {
+        margin: 5vh auto;
+        border: 1px solid lightgray;
+        font-size: 200%;
+        background-color: transparent;
+        outline:none;
+        width: 100%;
+        padding: 1em;
+    }
+
+    .content {
+        width: 80%;
+        margin: 5vh auto;
+
+    }

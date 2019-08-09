@@ -1,0 +1,7 @@
+*
+!*.py
+!*.html
+!*.css
+!*.js
+setup.py
+

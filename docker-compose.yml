@@ -1,0 +1,7 @@
+version: "2.0"
+
+services:
+  app:
+    image: "guneysu/youtube-downloader"
+    ports:
+      - "8002:8002"
